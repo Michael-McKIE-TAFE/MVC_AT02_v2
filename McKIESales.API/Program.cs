@@ -2,12 +2,15 @@ using McKIESales.API.Models;
 using McKIESales.API.Controllers;
 using McKIESales.API.Services;
 using MongoDB.Driver;
+using Microsoft.OpenApi.Writers;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDB"));
-builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(builder.Configuration.GetValue<string>("MongoDBSettings:ConnectionString")));
+builder.Services.AddSingleton<IMongoClient>(sserviceProvider => {
+    var connectionString = builder.Configuration.GetSection("MongoDB")["ConnectionString"];
+    return new MongoClient(connectionString);
+});
 
-// Add services to the container.
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -17,7 +20,6 @@ builder.Services.AddSingleton<ShopContext>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()){
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -30,5 +32,13 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope()){
+    var mongoClient = scope.ServiceProvider.GetRequiredService<IMongoClient>();
+    var database = mongoClient.GetDatabase("bowling_supplies");
+
+    var seeder = new DatabaseSeeder(database);
+    await seeder.SeedAsync();
+}
 
 app.Run();
