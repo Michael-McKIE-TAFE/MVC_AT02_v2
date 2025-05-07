@@ -48,35 +48,6 @@ namespace McKIESales.API.Controllers {
             var products = await _shopContext.Products.Find(filter).Sort(sort).Skip(parameterQuery.Size * (parameterQuery.Page - 1)).Limit(parameterQuery.Size).ToListAsync();
 
             return Ok(products);
-
-            /*IQueryable<Product> products = _shopContext.Products.Where(p => p.IsAvailable == true);
-
-            if (parameterQuery.MinPrice != null){
-                products = products.Where(p => p.Price >= parameterQuery.MinPrice.Value);
-            }
-
-            if (parameterQuery.MaxPrice != null){
-                products = products.Where(p => p.Price <= parameterQuery.MaxPrice.Value);
-            }
-
-            if (!string.IsNullOrEmpty(parameterQuery.SearchTerm)){
-                products = products.Where(p => 
-                    p.Colour.Contains(parameterQuery.SearchTerm) || p.Name.Contains(parameterQuery.SearchTerm) ||
-                    p.LaneConditions.Contains(parameterQuery.SearchTerm) || p.Coverstock.Contains(parameterQuery.SearchTerm) ||
-                    p.Core.Contains(parameterQuery.SearchTerm)
-                );
-            }
-
-            if (!string.IsNullOrEmpty(parameterQuery.SortBy)){
-                if (parameterQuery.SortOrder == "desc"){
-                    products = products.OrderByDescending(p => EF.Property<object>(p, parameterQuery.SortBy));
-                } else {
-                    products = products.OrderBy(p => EF.Property<object>(p, parameterQuery.SortBy));
-                }
-            }
-
-            products = products.Skip(parameterQuery.Size * (parameterQuery.Page - 1)).Take(parameterQuery.Size);
-            return Ok(await products.ToArrayAsync());*/
         }
 
         [Route("/[controller]/{id}")]
@@ -91,11 +62,6 @@ namespace McKIESales.API.Controllers {
         public async Task<ActionResult> PostProduct (Product product){
             await _shopContext.Products.InsertOneAsync(product);
             return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
-            
-            /*_shopContext.Products.Add(product);
-            await _shopContext.SaveChangesAsync();
-
-            return CreatedAtAction("GetProduct", new { id = product.Id }, product);*/
         }
 
         //  Update
@@ -108,24 +74,6 @@ namespace McKIESales.API.Controllers {
             }
 
             return NoContent();
-
-            /*if (id != product.Id){
-                return BadRequest();
-            }
-
-            _shopContext.Entry(product).State = EntityState.Modified;
-
-            try {
-                await _shopContext.SaveChangesAsync();
-            } catch (DbUpdateConcurrencyException ex) {
-                if (!_shopContext.Products.Any(p => p.Id == id)){
-                    return NotFound();
-                } else {
-                    throw;
-                }
-            }
-
-            return NoContent();*/
         }
 
         //  Delete
@@ -133,17 +81,6 @@ namespace McKIESales.API.Controllers {
         public async Task<IActionResult> DeleteProduct (int id){
             var result = await _shopContext.Products.DeleteOneAsync(p => p.Id == id);
             return result.DeletedCount == 0 ? NotFound() : NoContent();
-            
-            
-            /*var product = await _shopContext.Products.FindAsync(id);
-
-            if(product == null){ 
-                return NotFound(); 
-            }
-
-            _shopContext.Products.Remove(product);
-            await _shopContext.SaveChangesAsync();
-            return product;*/
         }
     }
 }
