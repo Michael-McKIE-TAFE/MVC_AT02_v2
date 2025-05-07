@@ -1,10 +1,11 @@
 using McKIESales.API.Models;
 using McKIESales.API.Controllers;
 using McKIESales.API.Services;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDB"));
-builder.Services.AddSingleton<MongoDbService>();
+builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(builder.Configuration.GetValue<string>("MongoDBSettings:ConnectionString")));
 
 // Add services to the container.
 
@@ -12,7 +13,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//builder.Services.AddDbContext<ShopContext>(options => {options.UseInMemoryDatabase("Shop");});
+builder.Services.AddSingleton<ShopContext>();
 
 var app = builder.Build();
 
