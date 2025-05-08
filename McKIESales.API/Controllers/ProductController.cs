@@ -6,10 +6,10 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace McKIESales.API.Controllers {
-    [ApiController]
-    [Route("api/v{version:apiVersion}/products")]
     [ApiVersion("1.0")]
     [ApiVersion("2.0")]
+    [ApiController]
+    [Route("api/products")]
     public class ProductController : ControllerBase {
         private readonly ShopContext _shopContext;
 
@@ -17,8 +17,8 @@ namespace McKIESales.API.Controllers {
             _shopContext = shopContext;
         }
 
-        [HttpGet]
         [MapToApiVersion("1.0")]
+        [HttpGet]
         public async Task<ActionResult> GetAllProducts ([FromQuery] ProductParameterQuery parameterQuery){
             var filterBuilder = Builders<Product>.Filter;
             var filter = filterBuilder.Eq(p => p.IsAvailable, true);

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDB"));
 builder.Services.AddSingleton<IMongoClient>(sserviceProvider => {
@@ -19,15 +20,14 @@ builder.Services.AddControllers();
 
 builder.Services.AddApiVersioning(options => {
     options.ReportApiVersions = true;
-    options.DefaultApiVersion = new ApiVersion(1,0);
     options.AssumeDefaultVersionWhenUnspecified = true;
-    options.ApiVersionReader = new HeaderApiVersionReader("X-API-version");
-});
-
-builder.Services.AddVersionedApiExplorer(options => {
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ApiVersionReader = new HeaderApiVersionReader("api-version");
+}).AddMvc().AddApiExplorer(options => {
     options.GroupNameFormat = "'v'VVV";
     options.SubstituteApiVersionInUrl = true;
 });
+
 
 
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
@@ -54,6 +54,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+//  Used for the initial seeding of data into swagger
 using (var scope = app.Services.CreateScope()){
     var mongoClient = scope.ServiceProvider.GetRequiredService<IMongoClient>();
     var database = mongoClient.GetDatabase("bowling_supplies");
