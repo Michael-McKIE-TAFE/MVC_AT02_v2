@@ -23,7 +23,7 @@ builder.Services.AddApiVersioning(options => {
     options.AssumeDefaultVersionWhenUnspecified = true;
     options.ApiVersionReader = new HeaderApiVersionReader("X-API-version");
 });
- 
+
 builder.Services.AddVersionedApiExplorer(options => {
     options.GroupNameFormat = "'v'VVV";
     options.SubstituteApiVersionInUrl = true;
