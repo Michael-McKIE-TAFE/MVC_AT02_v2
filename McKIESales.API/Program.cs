@@ -1,9 +1,11 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using McKIESales.API;
 using McKIESales.API.Models;
 using McKIESales.API.Services;
-using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDB"));
@@ -21,22 +23,15 @@ builder.Services.AddApiVersioning(options => {
     options.AssumeDefaultVersionWhenUnspecified = true;
     options.ApiVersionReader = new HeaderApiVersionReader("X-API-version");
 });
-
+ 
 builder.Services.AddVersionedApiExplorer(options => {
     options.GroupNameFormat = "'v'VVV";
     options.SubstituteApiVersionInUrl = true;
 });
 
-builder.Services.AddSwaggerGen(options =>{ 
-    var provider = builder.Services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
 
-    foreach (var description in provider.ApiVersionDescriptions){
-        options.SwaggerDoc(description.GroupName, new OpenApiInfo {
-            Title = $"My API {description.ApiVersion}",
-            Version = description.GroupName
-        });
-    }
-});
+builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
