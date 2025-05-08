@@ -26,7 +26,7 @@ namespace McKIESales.API.Controllers {
             if (parameterQuery.MinPrice != null){
                 filter &= filterBuilder.Gte(p => p.Price, parameterQuery.MinPrice);
             }
-            
+
             if (parameterQuery.MaxPrice != null){
                 filter &= filterBuilder.Lte(p => p.Price, parameterQuery.MaxPrice);
             }
@@ -39,10 +39,10 @@ namespace McKIESales.API.Controllers {
                     filterBuilder.Regex(p => p.Name, new BsonRegularExpression(text, "i")),
                     filterBuilder.Regex(p => p.LaneConditions, new BsonRegularExpression(text, "i")),
                     filterBuilder.Regex(p => p.Coverstock, new BsonRegularExpression(text, "i")),
-                    filterBuilder.Regex(p => p.Core, new BsonRegularExpression(text, "i")) 
+                    filterBuilder.Regex(p => p.Core, new BsonRegularExpression(text, "i"))
                 );
             }
-            
+
             var sort = Builders<Product>.Sort.Ascending(p => p.Id);
 
             if (!string.IsNullOrEmpty(parameterQuery.SortBy)){
@@ -65,22 +65,26 @@ namespace McKIESales.API.Controllers {
         [HttpGet("by-manufacturer/{manufacturerName}")]
         [MapToApiVersion("2.0")]
         public async Task<ActionResult> GetProductsByManufacturer (string manufacturerName){
-            var categoryFilter = Builders<Category>.Filter.Regex(
-                c => c.ManufacturerName,
-                new BsonRegularExpression(manufacturerName, "i")
-            );
-            
-            var matchingCategories = await _shopContext.Categories.Find(categoryFilter).ToListAsync();
+            try {
+                var categoryFilter = Builders<Category>.Filter.Regex(
+                    c => c.ManufacturerName,
+                    new BsonRegularExpression(manufacturerName, "i")
+                );
 
-            if (!matchingCategories.Any()){
-                return NotFound($"No categories found for manufacturer '{manufacturerName}'.");
+                var matchingCategories = await _shopContext.Categories.Find(categoryFilter).ToListAsync();
+
+                if (!matchingCategories.Any()){
+                    return NotFound($"No categories found for manufacturer '{manufacturerName}'.");
+                }
+
+                var catId = matchingCategories.Select(c => c.Id).ToList();
+                var productFilter = Builders<Product>.Filter.In(p => p.CategoryId, catId);
+                var products = await _shopContext.Products.Find(productFilter).ToListAsync();
+
+                return Ok(products);
+            } catch (Exception ex){
+                return NotFound(ex);
             }
-
-            var catId = matchingCategories.Select(c => c.Id).ToList();
-            var productFilter = Builders<Product>.Filter.In(p => p.CategoryId, catId);
-            var products = await _shopContext.Products.Find(productFilter).ToListAsync();
-
-            return Ok(products);
         }
 
         //  Create
