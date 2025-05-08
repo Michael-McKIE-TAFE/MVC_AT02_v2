@@ -1,12 +1,15 @@
-﻿using McKIESales.API.Models;
+﻿using Asp.Versioning;
+using McKIESales.API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace McKIESales.API.Controllers {
-   [Route("/products")]
-   [ApiController]
+    [ApiController]
+    [Route("api/v{version:apiVersion}/products")]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     public class ProductController : ControllerBase {
         private readonly ShopContext _shopContext;
 
@@ -15,6 +18,7 @@ namespace McKIESales.API.Controllers {
         }
 
         [HttpGet]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult> GetAllProducts ([FromQuery] ProductParameterQuery parameterQuery){
             var filterBuilder = Builders<Product>.Filter;
             var filter = filterBuilder.Eq(p => p.IsAvailable, true);
@@ -50,15 +54,39 @@ namespace McKIESales.API.Controllers {
             return Ok(products);
         }
 
-        [Route("/[controller]/{id}")]
-        [HttpGet]
+        [HttpGet("{id}")]
+        [MapToApiVersion("1.0")]
+        [MapToApiVersion("2.0")]
         public async Task<ActionResult<Product>> GetProduct ([FromRoute] int id){
             var product = await _shopContext.Products.Find(p => p.Id == id).FirstOrDefaultAsync();
             return product == null ? NotFound() : Ok(product);
         }
 
+        [HttpGet("by-manufacturer/{manufacturerName}")]
+        [MapToApiVersion("2.0")]
+        public async Task<ActionResult> GetProductsByManufacturer (string manufacturerName){
+            var categoryFilter = Builders<Category>.Filter.Regex(
+                c => c.ManufacturerName,
+                new BsonRegularExpression(manufacturerName, "i")
+            );
+            
+            var matchingCategories = await _shopContext.Categories.Find(categoryFilter).ToListAsync();
+
+            if (!matchingCategories.Any()){
+                return NotFound($"No categories found for manufacturer '{manufacturerName}'.");
+            }
+
+            var catId = matchingCategories.Select(c => c.Id).ToList();
+            var productFilter = Builders<Product>.Filter.In(p => p.CategoryId, catId);
+            var products = await _shopContext.Products.Find(productFilter).ToListAsync();
+
+            return Ok(products);
+        }
+
         //  Create
         [HttpPost]
+        [MapToApiVersion("1.0")]
+        [MapToApiVersion("2.0")]
         public async Task<ActionResult> PostProduct (Product product){
             await _shopContext.Products.InsertOneAsync(product);
             return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
@@ -66,6 +94,8 @@ namespace McKIESales.API.Controllers {
 
         //  Update
         [HttpPut("{id}")]
+        [MapToApiVersion("1.0")]
+        [MapToApiVersion("2.0")]
         public async Task<IActionResult> UpdateProduct (int id, Product updatedProduct){
             var result = await _shopContext.Products.ReplaceOneAsync(p => p.Id == id, updatedProduct);
             
@@ -78,6 +108,8 @@ namespace McKIESales.API.Controllers {
 
         //  Delete
         [HttpDelete("{id}")]
+        [MapToApiVersion("1.0")]
+        [MapToApiVersion("2.0")]
         public async Task<IActionResult> DeleteProduct (int id){
             var result = await _shopContext.Products.DeleteOneAsync(p => p.Id == id);
             return result.DeletedCount == 0 ? NotFound() : NoContent();
