@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "McKIESales.API", "McKIESales.API\McKIESales.API.csproj", "{F4DB7D9C-89B3-423E-8810-AA2AAFA5B495}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MichaelsWebApplication", "MichaelsWebApplication\MichaelsWebApplication.csproj", "{3FBDFFC4-EBE3-41C9-A57C-548C96796A88}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{F4DB7D9C-89B3-423E-8810-AA2AAFA5B495}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4DB7D9C-89B3-423E-8810-AA2AAFA5B495}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4DB7D9C-89B3-423E-8810-AA2AAFA5B495}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FBDFFC4-EBE3-41C9-A57C-548C96796A88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FBDFFC4-EBE3-41C9-A57C-548C96796A88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FBDFFC4-EBE3-41C9-A57C-548C96796A88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FBDFFC4-EBE3-41C9-A57C-548C96796A88}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

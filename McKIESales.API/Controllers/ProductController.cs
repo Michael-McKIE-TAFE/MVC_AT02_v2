@@ -18,6 +18,10 @@ namespace McKIESales.API.Controllers {
             _shopContext = shopContext;
         }
         
+        //  This method retrieves a list of available products from the database,
+        //  applying filters based on price range, search term, and optional sorting criteria.
+        //  It supports pagination by using the `Page` and `Size` query parameters and returns
+        //  the filtered and sorted product list in the response.
         [HttpGet]
         [MapToApiVersion("1.0")]
         public async Task<ActionResult> GetAllProducts ([FromQuery] ProductParameterQuery parameterQuery){
@@ -55,6 +59,9 @@ namespace McKIESales.API.Controllers {
             return Ok(products);
         }
 
+        //  This method retrieves a single product by its ID from the database.
+        //  If the product is found, it returns the product details; otherwise,
+        //  it responds with a "Not Found" status.
         [HttpGet("{id}")]
         [MapToApiVersion("1.0")]
         public async Task<ActionResult<Product>> GetProduct ([FromRoute] int id){
@@ -62,6 +69,10 @@ namespace McKIESales.API.Controllers {
             return product == null ? NotFound() : Ok(product);
         }
 
+        //  This method retrieves products based on the manufacturer name by first finding matching categories.
+        //  If no categories are found, it returns a "Not Found" response. If categories exist, it retrieves and
+        //  returns all products linked to those categories. Any unexpected errors result in a 500 internal server
+        //  error response.
         [HttpGet("by-manufacturer/{manufacturerName}")]
         [MapToApiVersion("2.0")]
         public async Task<ActionResult> GetProductsByManufacturer (string manufacturerName){
@@ -87,6 +98,9 @@ namespace McKIESales.API.Controllers {
             }
         }
 
+        //  This method retrieves products based on one or more lane conditions by splitting the provided query string
+        //  into a list and filtering the products accordingly. If an error occurs during the process, it returns a 500
+        //  internal server error with a message.
         [HttpGet("by-laneCondition")]
         [MapToApiVersion("2.0")]
         public async Task<ActionResult> GetProductsByLaneCondition (string laneConditions){
@@ -96,11 +110,13 @@ namespace McKIESales.API.Controllers {
                 var products = await _shopContext.Products.Find(productFilter).ToListAsync();
                 return Ok(products);
             } catch (Exception ex){
-                return BadRequest(ex);
+                return StatusCode(500, new { message = "An unexpected error occurred. Please try again later.\n" + ex });
             }
         }
 
-        //  Create
+        //  This method adds a new product to the database by inserting it into the `Products` collection.
+        //  After the product is created, it returns a "Created" response along with the newly created
+        //  product's details and a link to retrieve it by ID.
         [HttpPost]
         [MapToApiVersion("1.0")]
         [MapToApiVersion("2.0")]
@@ -109,7 +125,9 @@ namespace McKIESales.API.Controllers {
             return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
 
-        //  Update
+        //  This method updates an existing product in the database based on the provided ID.
+        //  If no product is found with the given ID, it returns a "Not Found" response; otherwise,
+        //  it updates the product and returns a "No Content" status to indicate successful completion.
         [HttpPut("{id}")]
         [MapToApiVersion("1.0")]
         [MapToApiVersion("2.0")]
@@ -123,7 +141,9 @@ namespace McKIESales.API.Controllers {
             return NoContent();
         }
 
-        //  Delete
+        //  This method deletes a product from the database by its ID.
+        //  If no product is found with the specified ID, it returns a "Not Found" response;
+        //  otherwise, it returns a "No Content" status to indicate the deletion was successful.
         [HttpDelete("{id}")]
         [MapToApiVersion("1.0")]
         [MapToApiVersion("2.0")]
