@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using Asp.Versioning.Routing;
 using McKIESales.API;
 using McKIESales.API.Models;
 using McKIESales.API.Services;
@@ -40,6 +41,9 @@ builder.Services.AddApiVersioning(options => {
 
 builder.Services.AddSwaggerGen();
 builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
+builder.Services.Configure<RouteOptions>(options => {
+    options.ConstraintMap.Add("apiVersion", typeof(ApiVersionRouteConstraint));
+});
 
 var app = builder.Build();
 
