@@ -83,7 +83,7 @@ namespace McKIESales.API.Controllers {
 
                 return Ok(products);
             } catch (Exception ex){
-                return NotFound(ex);
+                return StatusCode(500, new { message = "An unexpected error occurred. Please try again later.\n" + ex });
             }
         }
 
