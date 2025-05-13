@@ -6,19 +6,20 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace McKIESales.API.Controllers {
+    [ApiController]
+    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
     [ApiVersion("2.0")]
-    [ApiController]
-    [Route("api/products")]
     public class ProductController : ControllerBase {
         private readonly ShopContext _shopContext;
 
         public ProductController (ShopContext shopContext){
             _shopContext = shopContext;
         }
-
-        [MapToApiVersion("1.0")]
+        
         [HttpGet]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult> GetAllProducts ([FromQuery] ProductParameterQuery parameterQuery){
             var filterBuilder = Builders<Product>.Filter;
             var filter = filterBuilder.Eq(p => p.IsAvailable, true);
@@ -56,7 +57,6 @@ namespace McKIESales.API.Controllers {
 
         [HttpGet("{id}")]
         [MapToApiVersion("1.0")]
-        [MapToApiVersion("2.0")]
         public async Task<ActionResult<Product>> GetProduct ([FromRoute] int id){
             var product = await _shopContext.Products.Find(p => p.Id == id).FirstOrDefaultAsync();
             return product == null ? NotFound() : Ok(product);
@@ -84,6 +84,19 @@ namespace McKIESales.API.Controllers {
                 return Ok(products);
             } catch (Exception ex){
                 return NotFound(ex);
+            }
+        }
+
+        [HttpGet("by-laneCondition")]
+        [MapToApiVersion("2.0")]
+        public async Task<ActionResult> GetProductsByLaneCondition (string laneConditions){
+            try {
+                var laneConditionsList = laneConditions.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
+                var productFilter = Builders<Product>.Filter.In(p => p.LaneConditions, laneConditionsList);
+                var products = await _shopContext.Products.Find(productFilter).ToListAsync();
+                return Ok(products);
+            } catch (Exception ex){
+                return BadRequest(ex);
             }
         }
 

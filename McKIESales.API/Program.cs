@@ -3,9 +3,7 @@ using Asp.Versioning.ApiExplorer;
 using McKIESales.API;
 using McKIESales.API.Models;
 using McKIESales.API.Services;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,20 +17,22 @@ builder.Services.AddSingleton<ShopContext>();
 builder.Services.AddControllers();
 
 builder.Services.AddApiVersioning(options => {
-    options.ReportApiVersions = true;
     options.AssumeDefaultVersionWhenUnspecified = true;
-    options.DefaultApiVersion = new ApiVersion(2, 1);
-    options.ApiVersionReader = new HeaderApiVersionReader("api-version");
-    //options.ApiVersionReader = new QueryStringApiVersionReader("api-version");
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new HeaderApiVersionReader("x-api-version"),
+        new QueryStringApiVersionReader("x-api-version"),
+        new UrlSegmentApiVersionReader()
+    );
 }).AddMvc().AddApiExplorer(options => {
     options.GroupNameFormat = "'v'VVV";
     options.SubstituteApiVersionInUrl = true;
+    options.AddApiVersionParametersWhenVersionNeutral = true;
 });
 
-
-
-builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 builder.Services.AddSwaggerGen();
+builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
 
 var app = builder.Build();
 
@@ -41,8 +41,9 @@ var apiProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider
 if (app.Environment.IsDevelopment()){
     app.UseSwagger();
     app.UseSwaggerUI(options => { 
-        foreach (var description in apiProvider.ApiVersionDescriptions){
-            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"My API {description.GroupName.ToUpperInvariant()}");
+        var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+        foreach (var description in provider.ApiVersionDescriptions){
+            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
         }
     });
 } else {
