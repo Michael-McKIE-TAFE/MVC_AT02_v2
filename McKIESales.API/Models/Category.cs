@@ -7,6 +7,5 @@ namespace McKIESales.API.Models {
         [BsonRepresentation(BsonType.Int32)]
         public int Id { get; set; }
         public string? ManufacturerName { get; set; }
-        public virtual List<Product>? Products { get; set; }
     }
 }
