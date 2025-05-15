@@ -6,6 +6,10 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 
 namespace McKIESales.API {
+    /// <summary>
+    /// This script was taken from here to help get the API versioning working correctly
+    /// https://weblogs.asp.net/ricardoperes/asp-net-core-api-versioning
+    /// </summary>
     internal class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions> {
         private readonly IApiVersionDescriptionProvider _provider;
         private readonly IOptions<ApiVersioningOptions> _options;
