@@ -1,6 +1,14 @@
+using McKIESales.WEB.Models;
+using McKIESales.WEB.Services;
+using MongoDB.Driver;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllersWithViews();
+
+builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));
+builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
