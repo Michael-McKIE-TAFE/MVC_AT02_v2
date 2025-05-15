@@ -1,0 +1,46 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model List<Product>
+
+<div class="text-center">
+    <h1 class="display-4"> Welcome </h1>
+    <h2> Product List </h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th> ID </th>
+                <th> Name </th>
+                <th> Weight </th>
+                <th> Colour </th>
+                <th> RG </th>
+                <th> DIFF </th>
+                <th> Lane Conditions </th>
+                <th> Coverstock </th>
+                <th> Core </th>
+                <th> Price </th>
+                <th> Available </th>
+                <th> Manufacturer ID </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model){
+                <tr>
+                    <td> @item.Id </td>
+                    <td> @item.Name </td>
+                    <td> @item.Weight </td>
+                    <td> @item.Colour </td>
+                    <td> @item.RG </td>
+                    <td> @item.Diff </td>
+                    <td> @item.LaneConditions </td>
+                    <td> @item.Coverstock </td>
+                    <td> @item.Core </td>
+                    <td> @item.Price </td>
+                    <td> @item.IsAvailable </td>
+                    <td> @item.CategoryId </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
