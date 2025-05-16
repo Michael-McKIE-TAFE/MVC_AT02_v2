@@ -34,7 +34,7 @@ namespace McKIESales.API {
 
         private OpenApiInfo CreateVersionInfo (ApiVersionDescription description){
             var info = new OpenApiInfo(){ 
-                Title = $"API {description.GroupName}",
+                Title = $"McKIESales.API {description.GroupName}",
                 Version = description.ApiVersion.ToString()
             };
 
