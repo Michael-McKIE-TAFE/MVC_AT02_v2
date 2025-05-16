@@ -101,13 +101,18 @@ namespace McKIESales.API.Controllers {
         //  This method retrieves products based on one or more lane conditions by splitting the provided query string
         //  into a list and filtering the products accordingly. If an error occurs during the process, it returns a 500
         //  internal server error with a message.
-        [HttpGet("by-laneCondition")]
+        [HttpGet]
         [MapToApiVersion("2.0")]
-        public async Task<ActionResult> GetProductsByLaneCondition (string laneConditions){
+        public async Task<ActionResult> GetProductsByLaneCondition ([FromQuery]string laneCondition){
             try {
-                var laneConditionsList = laneConditions.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
-                var productFilter = Builders<Product>.Filter.In(p => p.LaneConditions, laneConditionsList);
-                var products = await _shopContext.Products.Find(productFilter).ToListAsync();
+                var conditions = laneCondition?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim().ToLower()).ToList();
+
+                if (conditions == null || !conditions.Any()){
+                    return BadRequest("At least one lane condition must be provided.");
+                }
+
+                var filter = Builders<Product>.Filter.Or(conditions.Select(condition => Builders<Product>.Filter.Regex(p => p.LaneConditions, new MongoDB.Bson.BsonRegularExpression(condition, "i"))).ToArray());
+                var products = await _shopContext.Products.Find(filter).ToListAsync();
                 return Ok(products);
             } catch (Exception ex){
                 return StatusCode(500, new { message = "An unexpected error occurred. Please try again later.\n" + ex });
@@ -138,7 +143,8 @@ namespace McKIESales.API.Controllers {
                 return NotFound();
             }
 
-            return NoContent();
+            return CreatedAtAction(nameof(GetProduct), new { id = updatedProduct.Id }, updatedProduct);
+
         }
 
         //  This method deletes a product from the database by its ID.
