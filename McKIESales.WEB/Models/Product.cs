@@ -1,6 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace McKIESales.WEB.Models {
+    /// <summary>
+    /// A copy of the model that was used in the API for displaying the details on the
+    /// application front end.
+    /// </summary>
     public class Product {
         [Required]
         public int Id { get; set; }
