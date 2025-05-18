@@ -5,6 +5,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace McKIESales.API.Models {
+    /// <summary>
+    /// This class represents a product in the system, with properties such as 
+    /// `Id`, `Name`, `Weight`, `Colour`, `RG`, and other attributes like 
+    /// `LaneConditions`, `Coverstock`, `Core`, and `Price`. It includes validation 
+    /// annotations (e.g., `Required`) and MongoDB-specific attributes (`BsonId`, 
+    /// `BsonRepresentation`) for mapping to the database. The `CategoryId` property 
+    /// links the product to a specific category.
+    /// </summary>
     public class Product {
         [BsonId]
         [BsonRepresentation(BsonType.Int32)]

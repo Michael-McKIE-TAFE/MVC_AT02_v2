@@ -3,6 +3,12 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 namespace McKIESales.API.Models {
+    /// <summary>
+    /// This class provides access to MongoDB collections for products and categories. 
+    /// It initializes the database context using settings from the configuration and an 
+    /// `IMongoClient`, then exposes the `Products` and `Categories` collections for use 
+    /// in queries.
+    /// </summary>
     public class ShopContext {
         private readonly IMongoDatabase _database;
         private readonly MongoDBSettings _settings;

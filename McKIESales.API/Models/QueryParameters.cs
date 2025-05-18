@@ -1,4 +1,11 @@
 ﻿namespace McKIESales.API.Models {
+    /// <summary>
+    /// This class defines parameters for paginated and sorted queries. 
+    /// It enforces a maximum page size of 100, provides default sorting by 
+    /// `Id` in ascending order, and allows customization of the `Page`, 
+    /// `Size`, `SortBy`, and `SortOrder` properties with validation and 
+    /// sanitization.
+    /// </summary>
     public class QueryParameters {
         private const int MaxSize = 100;
         private int _pageSize = 50;

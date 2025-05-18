@@ -18,7 +18,7 @@ namespace McKIESales.API.Controllers {
             _shopContext = shopContext;
         }
         
-        //  This method retrieves a list of available products from the database,
+        //  This API Endpoint retrieves a list of available products from the database,
         //  applying filters based on price range, search term, and optional sorting criteria.
         //  It supports pagination by using the `Page` and `Size` query parameters and returns
         //  the filtered and sorted product list in the response.
@@ -59,7 +59,7 @@ namespace McKIESales.API.Controllers {
             return Ok(products);
         }
 
-        //  This method retrieves a single product by its ID from the database.
+        //  This API Endpoint retrieves a single product by its ID from the database.
         //  If the product is found, it returns the product details; otherwise,
         //  it responds with a "Not Found" status.
         [HttpGet("{id}")]
@@ -69,7 +69,7 @@ namespace McKIESales.API.Controllers {
             return product == null ? NotFound() : Ok(product);
         }
 
-        //  This method retrieves products based on the manufacturer name by first finding matching categories.
+        //  This API Endpoint retrieves products based on the manufacturer name by first finding matching categories.
         //  If no categories are found, it returns a "Not Found" response. If categories exist, it retrieves and
         //  returns all products linked to those categories. Any unexpected errors result in a 500 internal server
         //  error response.
@@ -98,9 +98,9 @@ namespace McKIESales.API.Controllers {
             }
         }
 
-        //  This method retrieves products based on one or more lane conditions by splitting the provided query string
-        //  into a list and filtering the products accordingly. If an error occurs during the process, it returns a 500
-        //  internal server error with a message.
+        //  This API endpoint handles GET requests for version 2.0, retrieving products that match one or more specified lane conditions.
+        //  It parses the input query string, constructs a MongoDB regex filter for case-insensitive matching, and returns the filtered
+        //  products or an appropriate error response if something goes wrong.
         [HttpGet]
         [MapToApiVersion("2.0")]
         public async Task<ActionResult> GetProductsByLaneCondition ([FromQuery]string laneCondition){
@@ -119,7 +119,7 @@ namespace McKIESales.API.Controllers {
             }
         }
 
-        //  This method adds a new product to the database by inserting it into the `Products` collection.
+        //  This API Endpoint adds a new product to the database by inserting it into the `Products` collection.
         //  After the product is created, it returns a "Created" response along with the newly created
         //  product's details and a link to retrieve it by ID.
         [HttpPost]
@@ -130,7 +130,7 @@ namespace McKIESales.API.Controllers {
             return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
 
-        //  This method updates an existing product in the database based on the provided ID.
+        //  This API Endpoint updates an existing product in the database based on the provided ID.
         //  If no product is found with the given ID, it returns a "Not Found" response; otherwise,
         //  it updates the product and returns a "No Content" status to indicate successful completion.
         [HttpPut("{id}")]
@@ -147,7 +147,7 @@ namespace McKIESales.API.Controllers {
 
         }
 
-        //  This method deletes a product from the database by its ID.
+        //  This API Endpoint deletes a product from the database by its ID.
         //  If no product is found with the specified ID, it returns a "Not Found" response;
         //  otherwise, it returns a "No Content" status to indicate the deletion was successful.
         [HttpDelete("{id}")]

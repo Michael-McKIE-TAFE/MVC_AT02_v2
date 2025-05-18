@@ -1,11 +1,19 @@
 ﻿using McKIESales.API.Models;
 using MongoDB.Driver;
+using System.Xml;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace McKIESales.API.Services {
-    public class DatabaseSeeder {
+    /// <summary>
+	/// The `DatabaseSeeder` class populates MongoDB with initial data. 
+	/// It creates unique indexes for `Category` and `Product` collections, 
+	/// and seeds both with predefined categories and products if they are empty.
+	/// </summary>
+	public class DatabaseSeeder {
         private readonly IMongoCollection<Category> _categoryCollection;
         private readonly IMongoCollection<Product> _productCollection;
 		private readonly IMongoDatabase _database;
+
 
         public DatabaseSeeder (IMongoDatabase database){
             _database = database;
@@ -13,6 +21,11 @@ namespace McKIESales.API.Services {
             _productCollection = database.GetCollection<Product>("products");
         }
 
+		//	The `SeedAsync` method does the following: it creates unique indexes for the `ManufacturerName`
+		//	field in the `Category` collection and the `Name` field in the `Product` collection. It then
+		//	checks if there are any categories or products in the database. If they don't exist, it inserts
+		//	a predefined list of categories and products into their respective collections. This ensures the
+		//	database is properly indexed and populated with initial data.
         public async Task SeedAsync (){
             var categoryIndexKeys = Builders<Category>.IndexKeys.Ascending(c => c.ManufacturerName);
 			var categoryIndexOptions = new CreateIndexOptions { Unique = true };

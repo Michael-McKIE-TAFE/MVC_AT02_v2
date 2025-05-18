@@ -8,16 +8,25 @@ using MongoDB.Driver;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+//  Configures `MongoDBSettings` from the app's configuration,
+//  making it accessible for dependency injection throughout the application.
 builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDB"));
+
+//  Registers `IMongoClient` as a singleton service, using the connection
+//  string from the configuration to create a `MongoClient` instance.
 builder.Services.AddSingleton<IMongoClient>(sserviceProvider => {
     var connectionString = builder.Configuration.GetSection("MongoDB")["ConnectionString"];
     return new MongoClient(connectionString);
 });
+
+//  Registers `ShopContext` as a singleton service, allowing it to be
+//  injected into other components throughout the application.
 builder.Services.AddSingleton<ShopContext>();
 
 builder.Services.AddControllers();
 
-//  This code configures API versioning for a .NET application. It sets the default API version to 1.0
+//  Configures API versioning. It sets the default API version to 1.0
 //  and assumes this version when the client does not specify one. It also enables reporting of the API
 //  version in responses. The `ApiVersionReader` is configured to read the API version from the header
 //  (`x-api-version`), query string (`x-api-version`), or URL segment.
@@ -40,17 +49,29 @@ builder.Services.AddApiVersioning(options => {
 });
 
 builder.Services.AddSwaggerGen();
+
+//  Configures Swagger options by using the `ConfigureSwaggerOptions` class.
+//  It registers it so that Swagger UI is customized when the application runs.
 builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
+
+//  Configures route options by adding a custom route constraint
+//  (`ApiVersionRouteConstraint`) for API versioning. It ensures
+//  that routes can be validated based on the API version.
 builder.Services.Configure<RouteOptions>(options => {
     options.ConstraintMap.Add("apiVersion", typeof(ApiVersionRouteConstraint));
 });
 
+//  Sets up a CORS policy named "AllowAll," allowing any origin, method, and header.
+//  It enables cross-origin requests from any source for the application.
 builder.Services.AddCors(options => { 
     options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
 var app = builder.Build();
 
+//  Retrieves the required `IApiVersionDescriptionProvider` service from the application's
+//  service container. It is typically used to handle API versioning and provides information
+//  about available API versions.
 var apiProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
 //  In the development environment, the code enables Swagger and configures the Swagger UI to

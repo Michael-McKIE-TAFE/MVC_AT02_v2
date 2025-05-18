@@ -19,6 +19,9 @@ namespace McKIESales.API {
             _options = options;
         }
 
+        //  This function configures Swagger documentation for each API version by including XML
+        //  comments (if available) and adding a corresponding Swagger document using version-specific
+        //  metadata. It loops through all API version descriptions provided by `_provider`.
         public void Configure(SwaggerGenOptions options){
             foreach (var description in _provider.ApiVersionDescriptions){
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -32,6 +35,10 @@ namespace McKIESales.API {
             }
         }
 
+        //  This function generates an `OpenApiInfo` object for a given API version,
+        //  setting its title and version number. It appends notes to the description if
+        //  the version is the default or deprecated, helping document consumers understand
+        //  the status of each API version.
         private OpenApiInfo CreateVersionInfo (ApiVersionDescription description){
             var info = new OpenApiInfo(){ 
                 Title = $"McKIESales.API {description.GroupName}",
