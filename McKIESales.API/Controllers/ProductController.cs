@@ -25,38 +25,42 @@ namespace McKIESales.API.Controllers {
         [HttpGet]
         [MapToApiVersion("1.0")]
         public async Task<ActionResult> GetAllProducts ([FromQuery] ProductParameterQuery parameterQuery){
-            var filterBuilder = Builders<Product>.Filter;
-            var filter = filterBuilder.Eq(p => p.IsAvailable, true);
+            try {
+                var filterBuilder = Builders<Product>.Filter;
+                var filter = filterBuilder.Eq(p => p.IsAvailable, true);
 
-            if (parameterQuery.MinPrice != null){
-                filter &= filterBuilder.Gte(p => p.Price, parameterQuery.MinPrice);
+                if (parameterQuery.MinPrice != null){
+                    filter &= filterBuilder.Gte(p => p.Price, parameterQuery.MinPrice);
+                }
+
+                if (parameterQuery.MaxPrice != null){
+                    filter &= filterBuilder.Lte(p => p.Price, parameterQuery.MaxPrice);
+                }
+
+                if (!string.IsNullOrEmpty(parameterQuery.SearchTerm)){
+                    var text = parameterQuery.SearchTerm;
+
+                    filter &= filterBuilder.Or(
+                        filterBuilder.Regex(p => p.Colour, new BsonRegularExpression(text, "i")),
+                        filterBuilder.Regex(p => p.Name, new BsonRegularExpression(text, "i")),
+                        filterBuilder.Regex(p => p.LaneConditions, new BsonRegularExpression(text, "i")),
+                        filterBuilder.Regex(p => p.Coverstock, new BsonRegularExpression(text, "i")),
+                        filterBuilder.Regex(p => p.Core, new BsonRegularExpression(text, "i"))
+                    );
+                }
+
+                var sort = Builders<Product>.Sort.Ascending(p => p.Id);
+
+                if (!string.IsNullOrEmpty(parameterQuery.SortBy)){
+                    sort = parameterQuery.SortOrder == "desc" ? Builders<Product>.Sort.Descending(parameterQuery.SortBy) : Builders<Product>.Sort.Ascending(parameterQuery.SortBy);
+                }
+
+                var products = await _shopContext.Products.Find(filter).Sort(sort).Skip(parameterQuery.Size * (parameterQuery.Page - 1)).Limit(parameterQuery.Size).ToListAsync();
+
+                return Ok(products);
+            } catch (Exception ex){
+                return StatusCode(500, new { message = "An unexpected error occurred, trying to get all products. Please try again later.\nDetails: " + ex });
             }
-
-            if (parameterQuery.MaxPrice != null){
-                filter &= filterBuilder.Lte(p => p.Price, parameterQuery.MaxPrice);
-            }
-
-            if (!string.IsNullOrEmpty(parameterQuery.SearchTerm)){
-                var text = parameterQuery.SearchTerm;
-
-                filter &= filterBuilder.Or(
-                    filterBuilder.Regex(p => p.Colour, new BsonRegularExpression(text, "i")),
-                    filterBuilder.Regex(p => p.Name, new BsonRegularExpression(text, "i")),
-                    filterBuilder.Regex(p => p.LaneConditions, new BsonRegularExpression(text, "i")),
-                    filterBuilder.Regex(p => p.Coverstock, new BsonRegularExpression(text, "i")),
-                    filterBuilder.Regex(p => p.Core, new BsonRegularExpression(text, "i"))
-                );
-            }
-
-            var sort = Builders<Product>.Sort.Ascending(p => p.Id);
-
-            if (!string.IsNullOrEmpty(parameterQuery.SortBy)){
-                sort = parameterQuery.SortOrder == "desc" ? Builders<Product>.Sort.Descending(parameterQuery.SortBy) : Builders<Product>.Sort.Ascending(parameterQuery.SortBy);
-            }
-
-            var products = await _shopContext.Products.Find(filter).Sort(sort).Skip(parameterQuery.Size * (parameterQuery.Page - 1)).Limit(parameterQuery.Size).ToListAsync();
-
-            return Ok(products);
         }
 
         //  This API Endpoint retrieves a single product by its ID from the database.
@@ -65,8 +69,12 @@ namespace McKIESales.API.Controllers {
         [HttpGet("{id}")]
         [MapToApiVersion("1.0")]
         public async Task<ActionResult<Product>> GetProduct ([FromRoute] int id){
-            var product = await _shopContext.Products.Find(p => p.Id == id).FirstOrDefaultAsync();
-            return product == null ? NotFound() : Ok(product);
+            try {
+                var product = await _shopContext.Products.Find(p => p.Id == id).FirstOrDefaultAsync();
+                return product == null ? NotFound() : Ok(product);
+            } catch (Exception ex){
+                return StatusCode(500, new { message = "An unexpected error occurred, trying to get product via ID. Please try again later.\nDetails: " + ex });
+            }
         }
 
         //  This API Endpoint retrieves products based on the manufacturer name by first finding matching categories.
@@ -94,7 +102,7 @@ namespace McKIESales.API.Controllers {
 
                 return Ok(products);
             } catch (Exception ex){
-                return StatusCode(500, new { message = "An unexpected error occurred. Please try again later.\n" + ex });
+                return StatusCode(500, new { message = "An unexpected error occurred, trying to get product by manufacturer name. Please try again later.\nDetails: " + ex });
             }
         }
 
@@ -115,7 +123,7 @@ namespace McKIESales.API.Controllers {
                 var products = await _shopContext.Products.Find(filter).ToListAsync();
                 return Ok(products);
             } catch (Exception ex){
-                return StatusCode(500, new { message = "An unexpected error occurred. Please try again later.\n" + ex });
+                return StatusCode(500, new { message = "An unexpected error occurred, trying to get products via lane condition. Please try again later.\nDetails: " + ex });
             }
         }
 
@@ -126,8 +134,12 @@ namespace McKIESales.API.Controllers {
         [MapToApiVersion("1.0")]
         [MapToApiVersion("2.0")]
         public async Task<ActionResult> PostProduct (Product product){
-            await _shopContext.Products.InsertOneAsync(product);
-            return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+            try {
+                await _shopContext.Products.InsertOneAsync(product);
+                return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+            } catch (Exception ex){
+                return StatusCode(500, new { message = "An unexpected error occurred, trying to add a new product. Please try again later.\nDetails: " + ex });
+            }
         }
 
         //  This API Endpoint updates an existing product in the database based on the provided ID.
@@ -137,14 +149,17 @@ namespace McKIESales.API.Controllers {
         [MapToApiVersion("1.0")]
         [MapToApiVersion("2.0")]
         public async Task<IActionResult> UpdateProduct (int id, Product updatedProduct){
-            var result = await _shopContext.Products.ReplaceOneAsync(p => p.Id == id, updatedProduct);
+            try {
+                var result = await _shopContext.Products.ReplaceOneAsync(p => p.Id == id, updatedProduct);
             
-            if (result.MatchedCount == 0){
-                return NotFound();
+                if (result.MatchedCount == 0){
+                    return NotFound();
+                }
+
+                return CreatedAtAction(nameof(GetProduct), new { id = updatedProduct.Id }, updatedProduct);
+            } catch (Exception ex){
+                return StatusCode(500, new { message = "An unexpected error occurred, trying to update a product. Please try again later.\nDetails: " + ex });
             }
-
-            return CreatedAtAction(nameof(GetProduct), new { id = updatedProduct.Id }, updatedProduct);
-
         }
 
         //  This API Endpoint deletes a product from the database by its ID.
@@ -154,8 +169,12 @@ namespace McKIESales.API.Controllers {
         [MapToApiVersion("1.0")]
         [MapToApiVersion("2.0")]
         public async Task<IActionResult> DeleteProduct (int id){
-            var result = await _shopContext.Products.DeleteOneAsync(p => p.Id == id);
-            return result.DeletedCount == 0 ? NotFound() : NoContent();
+            try {
+                var result = await _shopContext.Products.DeleteOneAsync(p => p.Id == id);
+                return result.DeletedCount == 0 ? NotFound() : NoContent();
+            } catch (Exception ex){
+                return StatusCode(500, new { message = "An unexpected error occurred, trying to delete a product. Please try again later.\nDetails: " + ex });
+            }
         }
     }
 }

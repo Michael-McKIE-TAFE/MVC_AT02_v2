@@ -6,15 +6,11 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 
 namespace McKIESales.API {
-    /// <summary>
-    /// This script was taken from here to help get the API versioning working correctly
-    /// https://weblogs.asp.net/ricardoperes/asp-net-core-api-versioning
-    /// </summary>
     internal class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions> {
         private readonly IApiVersionDescriptionProvider _provider;
         private readonly IOptions<ApiVersioningOptions> _options;
 
-        public ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider, IOptions<ApiVersioningOptions> options){
+        public ConfigureSwaggerOptions (IApiVersionDescriptionProvider provider, IOptions<ApiVersioningOptions> options){
             _provider = provider;
             _options = options;
         }
@@ -22,7 +18,7 @@ namespace McKIESales.API {
         //  This function configures Swagger documentation for each API version by including XML
         //  comments (if available) and adding a corresponding Swagger document using version-specific
         //  metadata. It loops through all API version descriptions provided by `_provider`.
-        public void Configure(SwaggerGenOptions options){
+        public void Configure (SwaggerGenOptions options){
             foreach (var description in _provider.ApiVersionDescriptions){
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
