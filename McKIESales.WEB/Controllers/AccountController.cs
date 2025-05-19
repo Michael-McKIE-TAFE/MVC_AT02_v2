@@ -44,19 +44,23 @@ namespace McKIESales.WEB.Controllers {
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Register (RegisterViewModel model){
-            if (ModelState.IsValid){
-                var hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
-                var user = new User {
-                    Username = model.Username,
-                    Email = model.Email,
-                    Password = hashedPassword
-                };
+            try {
+                if (ModelState.IsValid){
+                    var hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
+                    var user = new User {
+                        Username = model.Username!,
+                        Email = model.Email!,
+                        Password = hashedPassword
+                    };
 
-                _context.Users.InsertOneAsync(user);
-                return RedirectToAction("Success");
+                    _context.Users.InsertOneAsync(user);
+                    return RedirectToAction("Success");
+                }
+
+                return View(model);
+            } catch (Exception ex){
+                return StatusCode(500, new { message = "An unexpected error occurred, trying to register user. Please try again later.\nDetails: " + ex });
             }
-
-            return View(model);
         }
 
         //  This method is responsible for handling user login. It checks if the submitted
@@ -69,27 +73,31 @@ namespace McKIESales.WEB.Controllers {
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login (LoginViewModel model){
-            if (ModelState.IsValid){
-                var user = _context.Users.Find(u => u.Email == model.Email).FirstOrDefault();
+            try {
+                if (ModelState.IsValid){
+                    var user = _context.Users.Find(u => u.Email == model.Email).FirstOrDefault();
 
-                if (user != null && BCrypt.Net.BCrypt.Verify(model.Password, user.Password)){
-                    var Claims = new List<Claim> {
-                        new Claim(ClaimTypes.Name, user.Username),
-                        new Claim(ClaimTypes.Email, user.Email)
-                    };
+                    if (user != null && BCrypt.Net.BCrypt.Verify(model.Password, user.Password)){
+                        var Claims = new List<Claim> {
+                            new Claim(ClaimTypes.Name, user.Username),
+                            new Claim(ClaimTypes.Email, user.Email)
+                        };
 
-                    var identity = new ClaimsIdentity(Claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                    var principle = new ClaimsPrincipal(identity);
+                        var identity = new ClaimsIdentity(Claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                        var principle = new ClaimsPrincipal(identity);
 
-                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principle);
+                        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principle);
 
-                    return RedirectToAction("Dashboard", "Account");
+                        return RedirectToAction("Dashboard", "Account");
+                    }
+
+                    ModelState.AddModelError("", "Invalid login attempt.");
                 }
 
-                ModelState.AddModelError("", "Invalid login attempt.");
+                return View(model);
+            } catch (Exception ex){
+                return StatusCode(500, new { message = "An unexpected error occurred, while attempting to login. Please try again later.\nDetails: " + ex });
             }
-
-            return View(model);
         }
 
         //  Returns a view, likely to inform the user that an operation (such as registration)
@@ -102,8 +110,12 @@ namespace McKIESales.WEB.Controllers {
         //  is signed out, it redirects them to the "Login" action, effectively sending them to
         //  the login page.
         public async Task<IActionResult> Logout (){
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Login");
+            try {
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                return RedirectToAction("Login");
+            } catch (Exception ex){
+                return StatusCode(500, new { message = "An unexpected error occurred, while logging out. Please try again later.\n Details: " + ex });
+            }
         }
 
         //  This method is decorated with the `[Authorize]` attribute, meaning only authenticated
@@ -112,8 +124,20 @@ namespace McKIESales.WEB.Controllers {
         //  the username or potentially other user-specific data.
         [Authorize]
         public IActionResult Dashboard (){
-            var username = User.Identity?.Name;
-            return View(model: username);
+            try {
+                if (User.Identity == null || !User.Identity.IsAuthenticated){
+                    return RedirectToAction("Login");
+                }
+
+                HttpContext.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate";
+                HttpContext.Response.Headers.Pragma = "no-cache";
+                HttpContext.Response.Headers.Expires = "0";
+
+                var username = User.Identity?.Name;
+                return View(model: username);
+            } catch (Exception ex){
+                return StatusCode(500, new { message = "An unexpected error occurred, with the Dashboard. Please try again later.\nDetails: " + ex });
+            }
         }
     }
 }
