@@ -1,7 +1,5 @@
 ﻿using McKIESales.API.Models;
 using MongoDB.Driver;
-using System.Xml;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace McKIESales.API.Services {
     /// <summary>
